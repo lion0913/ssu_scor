@@ -75,8 +75,7 @@ void ssu_score(int argc, char *argv[])//인자값 가져옴
 	set_scoreTable(ansDir);//점수테이블 파일생성함수
 	set_idTable(stuDir);//학생테이블(학번 디렉터리 저장)
 	if(mOption){
-		do_mOption();//문제를 수정하는 함수를 수행
-		set_scoreTable(ansDir);//새로 바뀐 score_table.csv파일의 값에 맞는 score.csv파일 내용 수정
+		do_mOption();
 	}
 	printf("grading student's test papers..\n");
 	score_students();//학생들의 답안을 채점해서 score.csv함수에 저장하는 함수
@@ -896,13 +895,17 @@ double compile_program(char *id, char *filename)//프로그램을 컴파일하�
 	sprintf(tmp_f, "%s/%s", ansDir,  filename);
 	
 	sprintf(tmp_e, "%s/%s.exe", ansDir, qname);
+	//sprintf(tmp_e, "%s/%s/%s.exe", ansDir, qname, qname);
+	//printf("tmp_e : %s\n",tmp_e);
+	//printf("tmp_f : %s\n",tmp_f);//실행확인용
 	sprintf(tmp_e, "%s/%s.exe", ansDir, qname);
-	if(tOption && isthread)//-t옵션이나 스레드가 붙은경우 -lpthread옵션을 이용해서 컴파일함 
+	if(tOption &&  isthread)//-t옵션이나 스레드라면 -lpthread옵션을 이용해서 컴파일함 
 		sprintf(command, "gcc -o %s %s -lpthread", tmp_e, tmp_f);//답안 컴파일
 	else
 		sprintf(command, "gcc -o %s %s", tmp_e, tmp_f);
 
 	sprintf(tmp_e, "%s/%s_error.txt", ansDir, qname);//답안 컴파일 시의 에러파일생성
+	//printf("%s",tmp_e);
 	fd = creat(tmp_e, 0666);
 
 	redirection(command, fd, STDERR);
@@ -1085,7 +1088,7 @@ int compare_resultfile(char *file1, char *file2)//학생파일, 정답파일의 
 	close(fd2);
 	return true;
 }
-void redirection(char *command, int new, int old)//프로그램 redirection -> 출력 디스크립터를 변경
+void redirection(char *command, int new, int old)//프로그램 redirection
 {
 	int saved;
 	saved = dup(old);
@@ -1109,34 +1112,34 @@ int get_file_type(char *filename)//답안파일의 종류 알아오는 함수
 		return -1;
 }
 
-void rmdirs(const char *path)//경로를 주고 그 위치에 있는 디렉토리를 삭제하는 함수
+void rmdirs(const char *path)
 {
 	struct dirent *dirp;
 	struct stat statbuf;
 	DIR *dp;
 	char tmp[50];
 	
-	if((dp = opendir(path)) == NULL)//삭제할 디렉토리를 오픈
+	if((dp = opendir(path)) == NULL)
 		return;
 
-	while((dirp = readdir(dp)) != NULL)//디렉토리안 파일을 차례로 읽음
+	while((dirp = readdir(dp)) != NULL)
 	{
-		if(!strcmp(dirp->d_name, ".") || !strcmp(dirp->d_name, ".."))//.나 ..은 넘어감
+		if(!strcmp(dirp->d_name, ".") || !strcmp(dirp->d_name, ".."))
 			continue;
 
 		sprintf(tmp, "%s/%s", path, dirp->d_name);
 
-		if(lstat(tmp, &statbuf) == -1)//파일에 대한 정보를 읽어옴
-			continue;//정보가 없으면 넘어감
+		if(lstat(tmp, &statbuf) == -1)
+			continue;
 
-		if(S_ISDIR(statbuf.st_mode))//디렉토리 안에 디렉토리가 있다면 그 디렉토리를 삭제(재귀)
+		if(S_ISDIR(statbuf.st_mode))
 			rmdirs(tmp);
-		else//그렇지 않다면 그 파일과 언링크함
+		else
 			unlink(tmp);
 	}
 
 	closedir(dp);
-	rmdir(path);//경로에 위치한 디렉토리를 삭제
+	rmdir(path);
 }
 
 void to_lower_case(char *c)//대문자->소문자로 만들어주는 함수

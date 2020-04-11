@@ -948,21 +948,21 @@ node *get_high_precedence_node(node *cur, node *new)//더 높은 우선순위를
 
 node *get_most_high_precedence_node(node *cur, node *new)//가장 우선순위가 높은 노드를 구함
 {
-	node *operator = get_high_precedence_node(cur, new);
+	node *operator = get_high_precedence_node(cur, new);//기존연산자와 새연산자의 우선순위비교해서 operator에 저장
 	node *saved_operator = operator;
 
 	while(1)
 	{
-		if(saved_operator->parent == NULL)
+		if(saved_operator->parent == NULL)//우선순위 노드의 부모가 없다면 break
 			break;
 
-		if(saved_operator->prev != NULL)
-			operator = get_high_precedence_node(saved_operator->prev, new);
+		if(saved_operator->prev != NULL)//우선순위노드의 형제들이 존재하면
+			operator = get_high_precedence_node(saved_operator->prev, new);//형제노드와 우선순위비교
 
-		else if(saved_operator->parent != NULL)
-			operator = get_high_precedence_node(saved_operator->parent, new);
+		else if(saved_operator->parent != NULL)//우선순위노드의 부모노드가 존재한경우
+			operator = get_high_precedence_node(saved_operator->parent, new);//부모노드와 우선순위비교
 
-		saved_operator = operator;
+		saved_operator = operator;//우선순위노드저장하고 리턴
 	}
 	
 	return saved_operator;
@@ -982,7 +982,7 @@ node *insert_node(node *old, node *new)//노드를 삽입하는 함수
 	return new;
 }
 
-node *get_last_child(node *cur)//가장 작은 새끼를 리턴하는 함수
+node *get_last_child(node *cur)//가장 막내노드를 리턴하는 함수
 {
 	if(cur->child_head != NULL)//자식이 있다면 그 자식노드로 이동
 		cur = cur->child_head;

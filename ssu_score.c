@@ -247,11 +247,11 @@ void do_iOption(char (*ids)[FILELEN])//i옵션 수행함수
 		if(!is_exist(ids, tmp))
 			continue;
 		printf("%s's wrong answer :\n ", tmp);
-		while((p=strtok(NULL,","))!=NULL){
-			cnt++;
-			if(strcmp(p,"0")==0){
-				saved=get_qnumber(f_line,get_index(f_line,cnt));
-				printf("%s ",saved);
+		while((p=strtok(NULL,","))!=NULL){//","를 기준으로 문자열 구분 
+			cnt++;//카운트 증가
+			if(strcmp(p,"0")==0){//0이면
+				saved=get_qnumber(f_line,get_index(f_line,cnt));//인덱스를 받아와서 파일명을 얻어온다
+				printf("%s ",saved);//출력
 			}	
 		}
 		printf("\n");
@@ -261,10 +261,10 @@ void do_iOption(char (*ids)[FILELEN])//i옵션 수행함수
 	fclose(fp);
 }
 
-int get_index(char * f_line,int cnt){//
+int get_index(char * f_line,int cnt){//파일명이 있는 인덱스를 반환하는 함수
 	int k,i;
 	for(int idx=0;idx<strlen(f_line);idx++){
-		if(f_line[idx]==',') k++;
+		if(f_line[idx]==',') k++;//','를 기준으로 끊으면서 카운트 증가하다가 카운트까지 가면 인덱스 반환
 		if(k==cnt){
 			i=idx+1;
 			break;
@@ -277,7 +277,7 @@ int get_index(char * f_line,int cnt){//
 char* get_qnumber(char * f_line,int idx){//문제번호를 받아오는 함수
 	char *temp=(char *)calloc(BUFLEN,sizeof(char));
 	int k=0;
-	while(f_line[idx]!=',')
+	while(f_line[idx]!=',')//','을 기준으로 끊으면서 인덱스에 따르면 temp에 저장하고 리턴
 		temp[k++]=f_line[idx++];
 	return temp;
 }
@@ -795,28 +795,23 @@ double compile_program(char *id, char *filename)//프로그램을 컴파일하�
 	off_t size;
 	double result;
 
-	memset(qname, 0, sizeof(qname));
-	memcpy(qname, filename, strlen(filename) - strlen(strrchr(filename, '.')));
+	memset(qname, 0, sizeof(qname));//qname 초기화
+	memcpy(qname, filename, strlen(filename) - strlen(strrchr(filename, '.')));//. 앞까지를 받아들임(딱 문제번호만)
 	
-	isthread = is_thread(qname);
+	isthread = is_thread(qname);//스레드함수인지 알아내기
 
-	sprintf(tmp_f, "%s/%s", ansDir,  filename);
+	sprintf(tmp_f, "%s/%s", ansDir,  filename);//답안파일 경로
 	
-	sprintf(tmp_e, "%s/%s.exe", ansDir, qname);
-	//sprintf(tmp_e, "%s/%s/%s.exe", ansDir, qname, qname);
-	//printf("tmp_e : %s\n",tmp_e);
-	//printf("tmp_f : %s\n",tmp_f);//실행확인용
-	sprintf(tmp_e, "%s/%s.exe", ansDir, qname);
+	sprintf(tmp_e, "%s/%s.exe", ansDir, qname);//실행파일 경로
 	if(tOption &&  isthread)//-t옵션이나 스레드라면 -lpthread옵션을 이용해서 컴파일함 
 		sprintf(command, "gcc -o %s %s -lpthread", tmp_e, tmp_f);//답안 컴파일
 	else
-		sprintf(command, "gcc -o %s %s", tmp_e, tmp_f);
+		sprintf(command, "gcc -o %s %s", tmp_e, tmp_f);//그게아니면 일반컴파일
 
 	sprintf(tmp_e, "%s/%s_error.txt", ansDir, qname);//답안 컴파일 시의 에러파일생성
-	//printf("%s",tmp_e);
 	fd = creat(tmp_e, 0666);
 
-	redirection(command, fd, STDERR);
+	redirection(command, fd, STDERR);//커맨드명령 후 에러나면 tmp_e경로에 그 내용 저장
 	size = lseek(fd, 0, SEEK_END);
 	close(fd);
 	unlink(tmp_e);
@@ -824,8 +819,8 @@ double compile_program(char *id, char *filename)//프로그램을 컴파일하�
 	if(size > 0)
 		return false;
 
-	sprintf(tmp_f, "%s/%s/%s", stuDir, id, filename);
-	sprintf(tmp_e, "%s/%s/%s.stdexe", stuDir, id, qname);
+	sprintf(tmp_f, "%s/%s/%s", stuDir, id, filename);//학생답안파일경로
+	sprintf(tmp_e, "%s/%s/%s.stdexe", stuDir, id, qname);//학생실행파일 경로
 
 	if(tOption && isthread)//학생들의 답안파일 컴파일
 		sprintf(command, "gcc -o %s %s -lpthread", tmp_e, tmp_f);

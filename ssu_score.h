@@ -28,20 +28,20 @@
 #ifndef ERROR
 	#define ERROR 0
 #endif
-
+//버퍼의 기본 크기 설정
 #define FILELEN 64
 #define BUFLEN 1024
 #define SNUM 100
 #define QNUM 100
-#define ARGNUM 5
+#define ARGNUM 5//최대 허용 가능한 인자수
 
-struct ssu_scoreTable{
+struct ssu_scoreTable{//점수 테이블 구조체 선언(문제번호, 점수)
 	char qname[FILELEN];
 	double score;
 };
 
-void ssu_score(int argc, char *argv[]);
-int check_option(int argc, char *argv[]);
+void ssu_score(int argc, char *argv[]);//옵션을 확인하고 점수테이블을 생성하는 함수
+int check_option(int argc, char *argv[]);//옵션여부를 체크하고 그에 필요한 인자를 받아들이는 함수
 void print_usage();
 
 void score_students();
@@ -57,8 +57,8 @@ pid_t inBackground(char *name);
 double check_error_warning(char *filename);
 int compare_resultfile(char *file1, char *file2);
 void do_mOption(void);
-void rewrite(int line,double score);
-void do_iOption(char (*ids)[FILELEN]);
+int  rewrite(int line,double score);
+void do_iOption(char (*ids)[FILELEN]);//i옵션수행함수(학번 찾아서 틀린 답 출력)
 int get_index(char *f_line,int cnt);
 char* get_qnumber(char *f_line,int idx);
 int is_exist(char (*src)[FILELEN], char *target);

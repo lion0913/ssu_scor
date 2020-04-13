@@ -76,6 +76,7 @@ void ssu_score(int argc, char *argv[])//인자값 가져옴
 	set_idTable(stuDir);//학생테이블(학번 디렉터리 저장)
 	if(mOption){
 		do_mOption();
+		set_scoreTable(ansDir);//수정된 score_table.csv 파일을 바탕으로 score_table.csv파일을 바꿔주어야함
 	}
 	printf("grading student's test papers..\n");
 	score_students();//학생들의 답안을 채점해서 score.csv함수에 저장하는 함수
@@ -153,6 +154,7 @@ void do_mOption(){//-m옵션이 입력되었을때 수행하는 함수
 	char input[BUFLEN];//수정하고자하는 문제제목
 	char qname[BUFLEN];//score_table.csv에서 찾을 문제의 제목
 	char *qnum;
+	int exist=1;
 	
 	while(1){
 
@@ -166,23 +168,34 @@ void do_mOption(){//-m옵션이 입력되었을때 수행하는 함수
 		scanf("%s",input);
 		getchar();
 		line=0;//라인을 다시 초기화해주어야지 rewrite함수를 쓸 때 수정할 줄의 수를 제대로 읽어들일 수 있음.
-		while((fscanf(fp,"%[^,],%lf\n",qname,&score))!=EOF){//QNAME, score을 차례로 채움
+		while((exist=(fscanf(fp,"%[^,],%lf\n",qname,&score)))!=EOF){//QNAME, score을 차례로 채움/파일의 유무를 확인하기 위해 exist존재
 			qnum=strtok(qname,".");//문제 번호만 가져옴 ex>1-1,11-1
 			if(strcmp(qnum,input)==0){//입력한 문제번호와 읽어온 문제번호가 같을때(=찾았을 때)
+				//exist=1;
 				printf("Current score: %.1lf\n",score);
 				printf("New score : ");
 				scanf("%lf",&score);//새롭게 할당할 점수를 입력받음
-				rewrite(line,score);//score_table.csv를 수정하는 함수
+				if(rewrite(line,score)==0){//score_table.csv를 수정함. 만약에 제대로 읽어들이지 못한 경우 오류처리해줌
+					fprintf(stderr,"rewrite error for %s\n","score_table.csv");
+					return;
+				}
+				exist=1;//탐색이 성공한 경우
+				break;//제대로 성공한다면 break
+				
 			}
 			line++;//줄 수 증가
 			memset(qname,0,strlen(qname));//qname초기화(다음값을 입력받기 위해)
 		}
 		if(strcmp(input,"no")==0) break;//no를 입력한다면 break
+		if(exist==EOF){//파일의 탐색이 실패한경우
+		 	fprintf(stderr,"qname is wrong\n");
+			exit(1);
+		}
 	}
 	fclose(fp);//파일 닫음
 }
 
-void rewrite(int line,double score){//score_table.csv파일에 들어있는 값을 새로 채우는 함수(점수 수정이 있었을때)
+int rewrite(int line,double score){//score_table.csv파일에 들어있는 값을 새로 채우는 함수(점수 수정이 있었을때)
 	FILE *temp;//임시 저장할 파일(나중에 옮겨적을꺼다)
 	FILE *old;//원래 score_table.csv파일
 	char old_pth[BUFLEN]={0};//파일의 경로를 저장하기 위한 배열
@@ -195,9 +208,11 @@ void rewrite(int line,double score){//score_table.csv파일에 들어있는 값�
 	char tmp[BUFLEN]={0};
 	if((temp=fopen("temp.csv","w"))==NULL){//temp.csv오픈(쓰기권한)
 		fprintf(stderr,"file open error for %s\n","temp.csv");
+		return 0;
 	}
 	if((old=fopen("score_table.csv","r"))==NULL){//score_table.csv오픈(읽기권한)
 		fprintf(stderr,"file open error for %s\n","score_table.csv");
+		return 0;
 	}
 	cnt=0;
 	memset(tmp,0,strlen(tmp));//tmp초기화
@@ -224,6 +239,7 @@ void rewrite(int line,double score){//score_table.csv파일에 들어있는 값�
 	system(filecpy);
 	sprintf(filedelete,"rm %s",temp_pth);//임시파일 삭제
 	system(filedelete);
+	return 1;
 }
 
 void do_iOption(char (*ids)[FILELEN])//i옵션 수행함수
@@ -234,6 +250,7 @@ void do_iOption(char (*ids)[FILELEN])//i옵션 수행함수
 	int i = 0;
 	int cnt=0;
 	char *p, *saved;
+	int exist=1;
 	if((fp = fopen("score.csv", "r")) == NULL){//score.csv파일 오픈
 		fprintf(stderr, "file open error for score.csv\n");
 		return;
@@ -241,11 +258,13 @@ void do_iOption(char (*ids)[FILELEN])//i옵션 수행함수
 
 	fscanf(fp, "%s\n", f_line);//첫번째 줄 (문제번호 모음)읽어들이기
 
-	while(fscanf(fp, "%s\n", tmp) != EOF)//줄단위로 읽어들임(파일이 끝날 때까지)
+	while(exist=(fscanf(fp, "%s\n", tmp)) != EOF)//줄단위로 읽어들임(파일이 끝날 때까지)
 	{
 		p = strtok(tmp, ",");//,를 단위로 끊음
-		if(!is_exist(ids, tmp))
-			continue;
+		
+		if(!is_exist(ids, tmp)){
+			continue;//찾고자 하는 학번을 찾을때까지 계속 넘어감
+		}
 		printf("%s's wrong answer :\n ", tmp);
 		while((p=strtok(NULL,","))!=NULL){//","를 기준으로 문자열 구분 
 			cnt++;//카운트 증가
@@ -265,13 +284,13 @@ int get_index(char * f_line,int cnt){//파일명이 있는 인덱스를 반환�
 	int k,i;
 	for(int idx=0;idx<strlen(f_line);idx++){
 		if(f_line[idx]==',') k++;//','를 기준으로 끊으면서 카운트 증가하다가 카운트까지 가면 인덱스 반환
-		if(k==cnt){
+		if(k==cnt){//카운트에 다다르면 그 인덱스를 반환하고 멈춤
 			i=idx+1;
 			break;
 		}
 
 	}
-	return i;
+	return i;//인덱스 값 반환
 }
 
 char* get_qnumber(char * f_line,int idx){//문제번호를 받아오는 함수
@@ -289,12 +308,12 @@ int is_exist(char (*src)[FILELEN], char *target)//학번이 존재하는지 확�
 	{
 		if(i >= ARGNUM)//최대인자를 초과한 경우 false를 리턴
 			return false;
-		else if(!strcmp(src[i], ""))//다 읽었는데도 없으면 false
+		else if(!strcmp(src[i], ""))//비어있으면  false
 			return false;
 		else if(!strcmp(src[i++], target))//i를 증가시켜 차례로 읽었을 때, target에 해당하는 내용을 찾으면 true를 리턴
 			return true;
 	}
-	return false;
+	return false;//존재하지 않는다면 false를 리턴
 }
 
 void set_scoreTable(char *ansDir)//점수테이블 파일 설정함수
@@ -540,7 +559,7 @@ void score_students()//score.csv파일을 채우는 함수(학생들의 채점�
 	}
 	write_first_row(fd);//파일의 첫번째줄 작성
 
-	for(num = 0; num < size; num++)//문제수만큼 반복
+	for(num = 0; num < size; num++)//학생 수만큼 반복
 	{
 		//printf("%s\n",id_table[num]);
 		if(!strcmp(id_table[num], ""))//학번을 받아들임 (없을 시 종료)

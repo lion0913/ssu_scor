@@ -1,5 +1,5 @@
-/home/kps/ssu_score/ssu_score/STD_DIR/20200003/25.c: In function ‘main’:
-/home/kps/ssu_score/ssu_score/STD_DIR/20200003/25.c:38:1: error: expected ‘;’ before ‘}’ token
+/home/kps/git_ssu_score/STD_DIR/20200003/25.c: In function ‘main’:
+/home/kps/git_ssu_score/STD_DIR/20200003/25.c:38:1: error: expected ‘;’ before ‘}’ token
  }
  ^
-/home/kps/ssu_score/ssu_score/STD_DIR/20200003/25.c:38:1: error: expected declaration or statement at end of input
+/home/kps/git_ssu_score/STD_DIR/20200003/25.c:38:1: error: expected declaration or statement at end of input

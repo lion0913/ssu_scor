@@ -23,12 +23,12 @@ typedef struct node{
 	struct node *child_head;
 	struct node *prev;
 	struct node *next;
-}node;
+}node;//노드 구조체(토큰트리를 생성하기 위한 구조체)
 
 typedef struct operator_precedence{
 	char *operator;
 	int precedence;
-}operator_precedence;
+}operator_precedence;//연산자우선순위를 저장하기 위한  구조체
 
 void compare_tree(node *root1,  node *root2, int *result);
 node *make_tree(node *root, char (*tokens)[MINLEN], int *idx, int parentheses);
